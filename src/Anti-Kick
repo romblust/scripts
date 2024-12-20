@@ -1,0 +1,17 @@
+assert(not getgenv().AK, "Anti Kick is already running!")
+
+hookfunction(game:GetService("Players").LocalPlayer.Kick, function(p, r)
+    warn("Kick attempted for: %s" :format(r))
+end)
+
+local __nc
+__nc = hookmetamethod(game, "__namecall", function(s, ...)
+    local m = getnamecallmethod()
+    if s == game:GetService("Players").LocalPlayer and table.find({"Kick", "kick"}, m) then
+        warn("Kick attempted for: %s" :format((...)[1]))
+        return
+    end
+    return __nc(s, ...)
+end)
+
+getgenv().AK = true
