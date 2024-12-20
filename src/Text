@@ -1,4 +1,4 @@
-local function Emoji(text)
+local Emoji = function(text)
 	return text:gsub(".", {
 		["A"] = "Ǟ", ["B"] = "Ɓ", ["C"] = "Ç", ["D"] = "Ð", ["E"] = "È",
 		["F"] = "Ƒ", ["G"] = "Ɠ", ["H"] = "Ĥ", ["I"] = "Ì", ["J"] = "ʆ",
