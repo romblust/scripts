@@ -1,0 +1,39 @@
+local log = function(url)
+    if table.find(blk, url) then
+        print(string.format("Blocked URL: %s", url))
+        return true
+    end
+    print(string.format("Request to: %s", url))
+    return false
+end
+
+local cHttpGet = function(url)
+    if log(url) then return end
+    return game.HttpGet(url)
+end
+
+getgenv().game.HttpGet = function(info)
+    if info.Url and not log(info.Url) then
+        return game.HttpRequest(info)
+    end
+end
+
+getgenv().game = setmetatable({}, {
+    __index = function(_, method)
+        local success, res = pcall(function()
+            return game[method]
+        end)
+
+        if method == "HttpGet" then
+            return cHttpGet
+        elseif success and type(res) == "function" then
+            return function(_, ...)
+                return res(game, ...)
+            end
+        else
+            return game[method] or game:GetService(method)
+        end
+    end
+})
+
+--[[TODO : Create a table and name it blk ex: local blk = {UR HTTP TO BLACKLIST}]]
