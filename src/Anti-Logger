@@ -1,0 +1,20 @@
+local gm = getrawmetatable(game)
+local nc = gm.__namecall
+setreadonly(gm, false)
+
+gm.__namecall = newcclosure(function(s, ...)
+    local m, a = getnamecallmethod():lower(), {...}
+    if m:find("httpget") and tostring(a[2]):find("%.php") then return nil end
+    return nc(s, ...)
+end)
+
+setreadonly(gm, true)
+
+local rq = ({"http_request", "request", "http.request", "syn.request"})
+for _, v in ipairs(rq) do
+    local f = loadstring("return " .. v)()
+    if f then
+        f = newcclosure(function() return nil end)
+        break
+    end
+end
