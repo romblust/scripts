@@ -1,0 +1,38 @@
+enabled = true
+spyOnMyself = true
+public = false
+publicItalics = true
+privateProperties = {
+Color = Color3.fromRGB(0,255,255); 
+Font = Enum.Font.SourceSansBold;
+TextSize = 18;
+}
+local Player = game:GetService("Players").LocalPlayer or game:GetService("Players"):GetPropertyChangedSignal("LocalPlayer"):Wait() or game:GetService("Players").LocalPlayer
+local Int = (_G.chatSpyInstance or 0) + 1
+_G.chatSpyInstance = Int
+
+local function onChatted(p,msg)
+if _G.chatSpyInstance == Int then
+	if p==Player and msg:lower():sub(1,4)=="/spy" then
+		enabled = not enabled
+		task.wait(0.3)
+		privateProperties.Text = "{SPY "..(enabled and "EN" or "DIS").."ABLED}"
+		game:GetService("StarterGui"):SetCore("ChatMakeSystemMessage",privateProperties)
+	elseif enabled and (spyOnMyself==true or p~=Player) then
+		msg = msg:gsub("[\n\r]",''):gsub("\t",' '):gsub("[ ]+",' ')
+		local hidden = true
+		local conn = game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("OnMessageDoneFiltering").OnClientEvent:Connect(function(packet,channel)
+			if packet.SpeakerUserId==p.UserId and packet.Message==msg:sub(#msg-#packet.Message+1) and (channel=="All" or (channel=="Team" and public==false and game:GetService("Players")[packet.FromSpeaker].Team==Player.Team)) then hidden = false end end) task.wait(1) conn:Disconnect()
+		if hidden and enabled then
+			if public then
+				game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest"):FireServer((publicItalics and "/me " or '').."{SPY} [".. p.Name .."]: "..msg,"All")
+			else
+				privateProperties.Text = "{SPY} [".. p.Name .."]: "..msg game:GetService("StarterGui"):SetCore("ChatMakeSystemMessage",privateProperties)
+			end
+		end
+	end
+end
+end
+
+for _,p in ipairs(game:GetService("Players"):GetPlayers()) do p.Chatted:Connect(function(msg) onChatted(p,msg) end) end game:GetService("Players").PlayerAdded:Connect(function(p) p.Chatted:Connect(function(msg) onChatted(p,msg) end) end)
+privateProperties.Text = "{SPY "..(enabled and "EN" or "DIS").."ABLED}" game:GetService("StarterGui"):SetCore("ChatMakeSystemMessage",privateProperties) if not Player.PlayerGui:FindFirstChild("Chat") then task.wait(3) end local chatFrame = Player.PlayerGui.Chat.Frame chatFrame.ChatChannelParentFrame.Visible = true chatFrame.ChatBarParentFrame.Position = chatFrame.ChatChannelParentFrame.Position+UDim2.new(UDim.new(),chatFrame.ChatChannelParentFrame.Size.Y)
